@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env
+
+# SEC EDGAR download cache (rebuilt on demand)
+.cache/
+
+# OS
+.DS_Store
+
+# Editor
+.vscode/
+.idea/

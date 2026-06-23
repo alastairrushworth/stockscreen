@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Stock Screener &amp; Factor Backtester</title>
+  <meta name="description" content="Static stock screener and long/short factor backtester for the S&P 500, updated daily from free public data." />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <span class="logo">▦</span>
+      <h1>Stock Screener <span class="sep">·</span> Factor Backtester</h1>
+    </div>
+    <nav class="tabs">
+      <button class="tab on" data-panel="panel-screener">Screener</button>
+      <button class="tab" data-panel="panel-backtest">Backtest</button>
+      <button class="tab" data-panel="panel-about">About</button>
+    </nav>
+  </header>
+
+  <div id="meta-bar" class="meta-bar">Loading…</div>
+  <div id="sample-note" class="sample-note" style="display:none"></div>
+
+  <!-- ===================== SCREENER ===================== -->
+  <section id="panel-screener" class="panel on">
+    <div class="layout">
+      <aside class="controls">
+        <div class="control-block">
+          <label class="control-label">Strategy preset</label>
+          <div id="presets" class="presets"></div>
+        </div>
+
+        <div class="control-block">
+          <label class="control-label">Scoring metrics
+            <span class="hint">↑ higher is better · ↓ lower is better</span>
+          </label>
+          <div id="metric-toggles" class="metric-toggles"></div>
+        </div>
+
+        <div class="control-block">
+          <label class="control-label" for="sector-filter">Sector</label>
+          <select id="sector-filter"></select>
+        </div>
+
+        <div class="control-block">
+          <label class="control-label" for="min-mcap">Min market cap ($B)</label>
+          <select id="min-mcap">
+            <option value="0">Any</option>
+            <option value="1">1</option>
+            <option value="10">10</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+            <option value="200">200</option>
+          </select>
+        </div>
+
+        <div class="control-block">
+          <label class="control-label" for="top-n">Show top</label>
+          <select id="top-n">
+            <option value="25">25</option>
+            <option value="50" selected>50</option>
+            <option value="100">100</option>
+            <option value="1000">All</option>
+          </select>
+        </div>
+
+        <div class="control-block">
+          <label class="control-label" for="search">Search</label>
+          <input id="search" type="text" placeholder="Ticker or name…" />
+        </div>
+
+        <button id="export-csv" class="ghost-btn">⬇ Export CSV</button>
+      </aside>
+
+      <main class="result">
+        <div class="result-head">
+          <span id="screen-count" class="muted"></span>
+        </div>
+        <div class="table-wrap">
+          <table id="screen-table" class="data-table"></table>
+        </div>
+      </main>
+    </div>
+  </section>
+
+  <!-- ===================== BACKTEST ===================== -->
+  <section id="panel-backtest" class="panel">
+    <div class="layout">
+      <aside class="controls">
+        <div class="control-block">
+          <label class="control-label" for="bt-factor">Ranking factor</label>
+          <select id="bt-factor"></select>
+        </div>
+
+        <div class="control-block">
+          <label class="control-label" for="bt-mode">Portfolio</label>
+          <select id="bt-mode">
+            <option value="ls">Long / Short</option>
+            <option value="long">Long only</option>
+            <option value="short">Short only</option>
+          </select>
+        </div>
+
+        <div class="control-block">
+          <label class="control-label" for="bt-bucket">Long top / short bottom</label>
+          <select id="bt-bucket">
+            <option value="0.1">Decile (10%)</option>
+            <option value="0.2" selected>Quintile (20%)</option>
+            <option value="0.3333">Tertile (33%)</option>
+            <option value="0.5">Half (50%)</option>
+          </select>
+        </div>
+
+        <div class="control-block">
+          <label class="control-label" for="bt-step">Rebalance every</label>
+          <select id="bt-step">
+            <option value="1" selected>1 month</option>
+            <option value="3">3 months</option>
+            <option value="6">6 months</option>
+            <option value="12">12 months</option>
+          </select>
+        </div>
+
+        <div class="control-block checkbox">
+          <label><input type="checkbox" id="bt-log" /> Log scale</label>
+        </div>
+
+        <button id="bt-run" class="primary-btn">▶ Run backtest</button>
+      </aside>
+
+      <main class="result">
+        <div id="bt-warn" class="warn" style="display:none"></div>
+        <div id="bt-stats" class="stats-grid"></div>
+        <div class="chart-wrap">
+          <canvas id="equity-chart"></canvas>
+        </div>
+        <p class="muted small">
+          Equal-weighted, gross of costs. Benchmark is the equal-weight average
+          of the same universe. Universe is the <em>current</em> S&amp;P 500, so
+          results carry survivorship bias — see the About tab.
+        </p>
+      </main>
+    </div>
+  </section>
+
+  <!-- ===================== ABOUT ===================== -->
+  <section id="panel-about" class="panel">
+    <div class="about">
+      <h2>About this tool</h2>
+      <p>
+        A fully static stock-screening and factor-backtesting app. Scheduled
+        GitHub Actions jobs pull the current S&amp;P 500 universe, ~15 years of
+        prices and company fundamentals from <strong>Yahoo Finance</strong> (via
+        <code>yfinance</code>), plus <strong>point-in-time historical
+        fundamentals from SEC EDGAR</strong>, compute metrics, and commit compact
+        JSON into <code>data/</code>. The browser does all ranking and
+        backtesting client-side — there is no server.
+      </p>
+
+      <h3>Screener</h3>
+      <p>
+        Pick a preset or toggle individual metrics. Each selected metric is
+        converted to a cross-sectional z-score (winsorised at ±3σ), signed by
+        its direction (cheap / high-quality / high-momentum / low-risk = good),
+        and equally averaged into a <strong>composite score</strong>. Sort by any
+        column; export the ranked table to CSV.
+      </p>
+
+      <h3>Backtest</h3>
+      <p>
+        At each rebalance date the universe is ranked by the chosen factor. The
+        portfolio goes long the top quantile and short the bottom quantile
+        (equal-weighted), held to the next rebalance. Period returns chain into
+        an equity curve with CAGR, volatility, Sharpe, max drawdown, and hit
+        rate, versus an equal-weight benchmark.
+      </p>
+      <p>
+        <strong>Price factors</strong> (momentum, low-volatility, reversal) are
+        computed from the monthly price matrix. <strong>Fundamental factors</strong>
+        (earnings/book/sales yield, FCF &amp; dividend yield, ROE/ROA, margins,
+        debt) are computed <em>point-in-time</em>: at each date we use only SEC
+        figures already filed by then, combined with that month's price — so a
+        value factor reprices monthly without look-ahead.
+      </p>
+
+      <h3>Honest limitations</h3>
+      <ul>
+        <li>
+          <strong>Point-in-time integrity.</strong> Historical fundamentals come
+          from SEC EDGAR keyed by <em>filing date</em>, so backtests don't peek at
+          numbers that weren't public yet. TTM figures reconstruct the missing Q4
+          as annual − (Q1+Q2+Q3); odd or sparse XBRL tagging means some
+          company/metric combinations are simply skipped.
+        </li>
+        <li>
+          <strong>Screener vs backtest source.</strong> The live screener uses
+          Yahoo's <em>current</em> fundamentals; the backtest uses SEC
+          point-in-time data. The two can differ slightly for the latest period.
+        </li>
+        <li>
+          <strong>Survivorship bias.</strong> The universe is today's S&amp;P 500
+          membership, so dropped/delisted names are missing from historical
+          tests. Treat backtests as illustrative, not investment advice.
+        </li>
+        <li>
+          <strong>Costs &amp; frictions.</strong> Backtests are gross of trading
+          costs, slippage, borrow fees, and taxes.
+        </li>
+        <li>
+          <strong>Data quality.</strong> Yahoo data is unofficial and can have
+          gaps or errors; missing values are simply excluded from ranking.
+        </li>
+      </ul>
+      <p class="muted small">Not investment advice. For research and education only.</p>
+    </div>
+  </section>
+
+  <script src="js/util.js"></script>
+  <script src="js/metrics.js"></script>
+  <script src="js/chart.js"></script>
+  <script src="js/screener.js"></script>
+  <script src="js/backtest.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

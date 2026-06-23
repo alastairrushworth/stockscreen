@@ -1,0 +1,61 @@
+name: Update fundamentals history
+
+# Historical point-in-time fundamentals from SEC EDGAR. Company filings are
+# quarterly, so a weekly rebuild is plenty (and courteous to SEC).
+
+on:
+  schedule:
+    - cron: "0 6 * * 6"   # Saturdays 06:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-fundamentals
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      # SEC asks for a descriptive User-Agent with contact info.
+      SEC_USER_AGENT: "stockscreen-backtest (github.com/${{ github.repository }})"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r scripts/requirements.txt
+
+      # Reuse downloaded SEC company-facts between runs (they change only on new
+      # filings). A miss simply re-downloads.
+      - name: Cache SEC company-facts
+        uses: actions/cache@v4
+        with:
+          path: .cache/sec
+          key: sec-facts-${{ github.run_id }}
+          restore-keys: |
+            sec-facts-
+
+      - name: Build fundamentals history
+        run: python scripts/build_history.py
+
+      - name: Commit fundamentals history
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/fundamentals_history.json
+          if git diff --cached --quiet; then
+            echo "No fundamentals changes to commit."
+          else
+            git commit -m "Fundamentals history update: $(date -u +%Y-%m-%d)"
+            git push
+          fi
