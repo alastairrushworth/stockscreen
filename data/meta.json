@@ -1,1 +1,1 @@
-{"updated":"sample data \u2014 run the daily job for real data","asOfDate":"2026-05-28","universe":"S&P 500 (sample subset)","count":46,"priced":46,"priceStart":"2016-06-28","priceEnd":"2026-05-28","source":"synthetic sample","sample":true}
+{"updated":"2026-06-23 09:21 UTC","asOfDate":"2026-06-23","universe":"S&P 500","count":503,"priced":503,"priceStart":"2011-06-30","priceEnd":"2026-06-30","source":"Yahoo Finance via yfinance","sample":false}
