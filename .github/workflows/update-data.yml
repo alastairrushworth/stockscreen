@@ -1,0 +1,49 @@
+name: Update data
+
+on:
+  # Weekdays at 23:00 UTC — after the US market has closed and settled.
+  schedule:
+    - cron: "0 23 * * 1-5"
+  # Allow manual runs from the Actions tab.
+  workflow_dispatch:
+
+# Needed so the job can commit the refreshed data back to the repo.
+permissions:
+  contents: write
+
+# Never run two updates at once.
+concurrency:
+  group: update-data
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r scripts/requirements.txt
+
+      - name: Fetch and build data
+        run: python scripts/fetch_data.py
+
+      - name: Commit updated data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data
+          if git diff --cached --quiet; then
+            echo "No data changes to commit."
+          else
+            git commit -m "Daily data update: $(date -u +%Y-%m-%d)"
+            git push
+          fi
