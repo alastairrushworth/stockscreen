@@ -20,6 +20,9 @@ MAX_RETRIES = 3
 # Output location (served as-is by GitHub Pages).
 DATA_DIR = "data"
 
+# Public base URL where the site is served (used to generate sitemap.xml).
+SITE_URL = "https://alastairrushworth.com/stockscreen/"
+
 # Round prices in the monthly matrix to keep the browser payload small.
 PRICE_DECIMALS = 3
 
