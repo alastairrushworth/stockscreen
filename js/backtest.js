@@ -157,9 +157,9 @@ const Backtest = (() => {
       dates: curve.map((c) => c.date),
       log,
       series: [
-        { name: `Strategy (${labelMode(mode)})`, color: "#5b9cff",
+        { name: `Strategy (${labelMode(mode)})`, color: "#f0f1f2",
           values: curve.map((c) => c.strat) },
-        { name: "Universe (equal-weight)", color: "#9aa3b8",
+        { name: "Universe (equal-weight)", color: "#71757a",
           values: curve.map((c) => c.bench) },
       ],
     });

@@ -93,7 +93,7 @@ class LineChart {
     ctx.strokeStyle = grid;
     ctx.fillStyle = fg;
     ctx.lineWidth = 1;
-    ctx.font = "11px system-ui, sans-serif";
+    ctx.font = "11px ui-monospace, Menlo, Consolas, monospace";
     ctx.textBaseline = "middle";
     for (const t of this._ticks()) {
       const y = ys(t);
@@ -150,7 +150,7 @@ class LineChart {
     const ctx = this.ctx;
     const i = this.hover;
     const x = xs(i);
-    ctx.strokeStyle = "rgba(150,160,190,0.5)"; // subtle vertical crosshair
+    ctx.strokeStyle = "rgba(160,165,170,0.5)"; // subtle vertical crosshair
     ctx.lineWidth = 1;
     ctx.beginPath(); ctx.moveTo(x, a.y0); ctx.lineTo(x, a.y1); ctx.stroke();
 
@@ -165,20 +165,20 @@ class LineChart {
     }
 
     // tooltip box
-    ctx.font = "11px system-ui, sans-serif";
+    ctx.font = "11px ui-monospace, Menlo, Consolas, monospace";
     const w = Math.max(...lines.map((l) => ctx.measureText(l).width)) + 16;
     const h = lines.length * 15 + 8;
     let bx = x + 10;
     if (bx + w > a.x1) bx = x - w - 10;
     const by = a.y0 + 8;
-    ctx.fillStyle = "rgba(20,26,42,0.92)";
-    ctx.strokeStyle = "rgba(150,160,190,0.4)";
+    ctx.fillStyle = "rgba(15,17,20,0.95)";
+    ctx.strokeStyle = "rgba(160,165,170,0.4)";
     ctx.beginPath();
     ctx.rect(bx, by, w, h);
     ctx.fill(); ctx.stroke();
     ctx.textAlign = "left";
     ctx.textBaseline = "top";
-    ctx.fillStyle = "#e7ebf5";
+    ctx.fillStyle = "#d4d6d9";
     lines.forEach((l, k) => ctx.fillText(l, bx + 8, by + 6 + k * 15));
   }
 
