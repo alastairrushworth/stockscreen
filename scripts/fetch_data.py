@@ -210,6 +210,28 @@ def write_json(path, obj):
     log(f"  wrote {path} ({os.path.getsize(path) // 1024} KB)")
 
 
+def write_sitemap(last_modified):
+    """Regenerate sitemap.xml so search engines see a fresh lastmod each run.
+
+    The frontend is a single-page app (screener/backtest/about are tabs), so the
+    sitemap lists the one canonical URL with the latest data date as lastmod.
+    """
+    xml = (
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+        "  <url>\n"
+        f"    <loc>{config.SITE_URL}</loc>\n"
+        f"    <lastmod>{last_modified}</lastmod>\n"
+        "    <changefreq>daily</changefreq>\n"
+        "    <priority>1.0</priority>\n"
+        "  </url>\n"
+        "</urlset>\n"
+    )
+    with open("sitemap.xml", "w") as fh:
+        fh.write(xml)
+    log("  wrote sitemap.xml")
+
+
 def main():
     today = date.today().isoformat()
     universe = get_universe()
@@ -261,6 +283,7 @@ def main():
     write_json(os.path.join(config.DATA_DIR, "screen.json"), records)
     write_json(os.path.join(config.DATA_DIR, "prices_monthly.json"), monthly)
     write_json(os.path.join(config.DATA_DIR, "meta.json"), meta)
+    write_sitemap(today)
     # Historical point-in-time fundamentals (fundamentals_history.json) are
     # built separately by build_history.py from SEC EDGAR.
     log("Done.")
