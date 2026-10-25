@@ -95,8 +95,8 @@ under `.cache/sec/` (gitignored) so reruns are fast.
 4. Trigger first runs from **Actions** → run **Update data** and **Update
    fundamentals history**.
 
-The weekly fundamentals job sets a default `SEC_USER_AGENT`; override it with a
-real contact via a repo variable/secret if you like.
+The weekly fundamentals job needs a `SEC_USER_AGENT` repo secret containing a
+contact email (e.g. `stockscreen you@example.com`); SEC returns 403 without one.
 
 The site goes live at `https://<you>.github.io/<repo>/`, with prices refreshing
 daily and fundamentals weekly.
